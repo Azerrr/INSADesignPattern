@@ -12,6 +12,7 @@ namespace INSADesignPattern.Observable
         {
             Console.WriteLine("Hello, what's your name?");
             string name = Console.ReadLine();
+            Program.UserName = name;
             Console.WriteLine("Hello, " + name + ", nice to meet you");
             return true;
         }
