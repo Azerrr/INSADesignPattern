@@ -4,53 +4,70 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace INSADesignPattern.Observable
+namespace INSADesignPattern.Observer
 {
-    class Obersver
+    class Observer
     {
-        private Dictionary<string, List<IObservable>> ObservableList; //private List<IObservable> ObservableList;
+        /// <summary>
+        /// The list of listeners
+        /// </summary>
+        private Dictionary<string, List<IObservable>> listeners;
 
-        public Obersver()
+        /// <summary>
+        /// Constructor. Initializes the listeners list
+        /// </summary>
+        public Observer()
         {
-            ObservableList = new Dictionary< string, List < IObservable >> (); //List<IObservable>();
+            listeners = new Dictionary<string, List<IObservable>>();
         }
-        
-        public bool OnEvent(string eventString, IObservable instance)
+
+        /// <summary>
+        /// Registers a listener for an input
+        /// </summary>
+        /// <param name="input"></param>
+        /// <param name="func"></param>
+        public void Register(string input, IObservable observable)
         {
-            // If the key doesn't exists, we add it to dictionnary
-            if (!ObservableList.ContainsKey(eventString))
-            {
-                ObservableList.Add(eventString, new List<IObservable>());
-            }
-            // If the instance is not already registered, we add it to the related list
-            if(ObservableList[eventString].Contains(instance))
-            {
-                Console.Error.WriteLine("This instance is already registered for this event");
+            // If the listener list does not contain the input ...
+            if (!listeners.ContainsKey(input))
+                // ... add a list for that input
+                listeners.Add(input, new List<IObservable>());
+
+            listeners.Single(p => p.Key == input).Value.Add(observable);
+        }
+
+        /// <summary>
+        /// Unregisters a listener
+        /// </summary>
+        /// <param name="input"></param>
+        /// <param name="func"></param>
+        public void Unregister(string input, IObservable observable)
+        {
+            if (!listeners.ContainsKey(input))
+                return;
+
+            listeners.Single(p => p.Key == input).Value.Remove(observable);
+        }
+
+        /// <summary>
+        /// triggers an event
+        /// </summary>
+        /// <param name="input"></param>
+        /// <returns></returns>
+        public bool Trigger(string input)
+        {
+            List<IObservable> inputListeners = listeners.SingleOrDefault(p => p.Key == input).Value;
+
+            if (inputListeners == null || inputListeners.Count == 0)
                 return false;
-            }
-            else
-            {
-                ObservableList[eventString].Add(instance);
-                return true;
-            }
-        }
-        
-        public bool OffEvent(string eventString, IObservable instance)
-        {
-            return ObservableList[eventString].Remove(instance);
-        }
 
-        public bool trigger(string line)
-        {
-            if(ObservableList.ContainsKey(line))
+            foreach (IObservable observable in inputListeners)
             {
-                foreach(IObservable instance in ObservableList[line])
-                {
-                    instance.Execute();
-                }
-                return true;
+                if (!observable.Execute())
+                    return true;
             }
-            return false;
+
+            return true;
         }
     }
 }
